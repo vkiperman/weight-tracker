@@ -1,0 +1,32 @@
+{
+  "name": "weight-tracker-android",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "prewww": "rm -rf www && mkdir www",
+    "www": "cp -R ../dist/weight-tracker/* ./www/ || cp -R ../dist/* ./www/ || true",
+    "sync": "npx cap sync android",
+    "open": "npx cap open android",
+    "build": "npm run prewww && npm run www && npm run sync",
+    "clean": "rm -rf node_modules www android",
+    "postinstall": "npx cap doctor || true"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "^7.2.0",
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/preferences": "^6.0.3",
+    "@tensorflow/tfjs": "^4.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "description": "- Node 18+ - Android Studio + SDKs, Java 17 - Google AdMob account (use test IDs while developing)",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

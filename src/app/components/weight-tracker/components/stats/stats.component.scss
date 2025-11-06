@@ -1,0 +1,40 @@
+:host {
+  max-width: 240px;
+}
+
+.diff {
+  display: flex;
+  justify-content: space-between;
+  gap: 1ch;
+  margin-right: 0.55em;
+  cursor: default;
+
+  .up {
+    color: rgb(255, 0, 0);
+    font-weight: 700;
+    position: relative;
+    &::after {
+      content: ' ↑';
+      position: absolute;
+      right: -0.79em;
+    }
+  }
+  .avg {
+    position: relative;
+    &::after {
+      content: ' x̄';
+      position: absolute;
+      right: -0.7em;
+    }
+  }
+  .down {
+    color: rgb(0, 255, 0);
+    font-weight: 700;
+    position: relative;
+    &::after {
+      content: ' ↓';
+      position: absolute;
+      right: -0.79em;
+    }
+  }
+}

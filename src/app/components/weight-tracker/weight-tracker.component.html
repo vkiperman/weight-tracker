@@ -1,0 +1,117 @@
+<div class="weight-tracker">
+  @if (weightTrackerConfig$ | async; as weightTrackerConfig) {
+    <div class="formatted-container">
+      <canvasjs-chart [options]="data()" (chartInstance)="handleChartReady($event)" />
+    </div>
+
+    <div class="dashboard formatted-container">
+      <div class="weight-entry-form">
+        <form [formGroup]="form" (submit)="updateWeights()">
+          @if (!todayIsRecorded()) {
+            <label for="wt">
+              Enter Weight
+              <input
+                id="wt"
+                [class.invalid]="form.get('y')?.invalid && form.get('y')?.touched"
+                type="number"
+                placeholder="175.2"
+                formControlName="y"
+                step=".1"
+              />
+            </label>
+            <button><code>Save</code></button>
+          } @else {
+            <label (click)="todayIsRecorded.set(false)">
+              Enter Weight
+              <div [style]="{ 'margin-top': '2px' }">
+                <b>{{ form.get('y')?.value }} lbs</b>
+              </div>
+            </label>
+            <button type="button" (click)="todayIsRecorded.set(false)">
+              <code>Edit</code>
+            </button>
+          }
+        </form>
+        @if (form.get('y')?.errors; as errors) {
+          <div>
+            {{ errors?.['tooLow'] && 'Weight seems too low.' }}
+            {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
+          </div>
+        }
+        <div>{{ form.get('x')?.value | date }}</div>
+        @if (mainData().dataPoints.at(-1)) {
+          <div class="last-item">
+            Last weigh-in:<br />{{ mainData().dataPoints.at(-1)?.x | date }}
+          </div>
+        }
+      </div>
+      <div class="sep"></div>
+
+      @if (mainData().dataPoints.length === 0) {
+        <h3>Make your first weight entry!</h3>
+      }
+
+      @if (mainData().dataPoints.length > 2) {
+        @if (configForm$ | async; as config) {
+          <!-- <pre>{{ config | json }}</pre> -->
+          <div class="weight-tracker">
+            <form [formGroup]="configForm">
+              <datalist id="values">
+                <option value="2" label="2"></option>
+                <option value="4" label="4"></option>
+                <option value="6" label="6"></option>
+                <option value="8" label="8"></option>
+                <option value="10" label="10"></option>
+                <option value="12" label="12"></option>
+                <option value="14" label="14"></option>
+              </datalist>
+              <label>
+                Projection Precision (last
+                {{ config.projectionSampleSize }} weigh-ins)
+                <br />
+                <input
+                  list="values"
+                  type="range"
+                  formControlName="projectionSampleSize"
+                  min="2"
+                  max="14"
+                />
+              </label>
+            </form>
+            <form [formGroup]="dynamicRange">
+              <dynamic-range-input
+                min="7"
+                [max]="getDedupedStoredData().length"
+                [label]="'Range: Last ' + dynamicRange.get('range')?.value + ' entries'"
+              />
+            </form>
+          </div>
+          <div class="sep"></div>
+        }
+
+        <diff [data]="mainData().dataPoints" />
+        <div class="sep"></div>
+
+        @if (canvasJSChart(); as canvasJSChart) {
+          <stats [data]="mainData().dataPoints" [canvasJSChart]="canvasJSChart" />
+        }
+      }
+
+      <!-- <div class="config">
+        <dialog #config>
+          <header>
+            <h2>⚙ Settings</h2>
+            <span class="close" (click)="hideDialog(config)">×</span>
+          </header>
+          @if (config.open) {
+            <config-form (saved)="hideDialog(config)">
+              <button type="button" (click)="hideDialog(config)">Cancel</button>
+            </config-form>
+          }
+        </dialog>
+        <a class="test">⚙</a>
+        <a class="click" (click)="showDialog(config)">⚙</a>
+      </div> -->
+    </div>
+  }
+</div>

@@ -1,0 +1,35 @@
+<div>
+  <!-- <pre>{{ data() | dailyPerformance }}</pre> -->
+  @if (data(); as dataPoints) {
+    @if (
+      {
+        avg: (dataPoints | avg: 'y'),
+        high: (dataPoints | high: 'y'),
+        low: (dataPoints | low: 'y'),
+        perf: (data() | dailyPerformance),
+      };
+      as stats
+    ) {
+      <div class="diff" (click)="handleShowTooltip(stats.high)" (mouseleave)="handleHideTooltip()">
+        <span>High:</span>
+        <span [class]="stats.high > stats.avg ? 'up' : 'down'">{{
+          stats.high | number: '1.2-2'
+        }}</span>
+      </div>
+      <div class="diff">
+        <span>Avg:</span>
+        <span class="avg">{{ stats.avg | number: '1.2-2' }}</span>
+      </div>
+      <div class="diff" (click)="handleShowTooltip(stats.low)" (mouseleave)="handleHideTooltip()">
+        <span>Low:</span>
+        <span [class]="stats.low > stats.avg ? 'up' : 'down'">{{
+          stats.low | number: '1.2-2'
+        }}</span>
+      </div>
+      <div class="diff">
+        <span>Daily:</span>
+        <span [class]="stats.perf >= 0 ? 'up' : 'down'">{{ stats.perf | number: '1.2-2' }}</span>
+      </div>
+    }
+  }
+</div>

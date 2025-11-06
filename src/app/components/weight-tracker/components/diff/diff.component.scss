@@ -1,0 +1,37 @@
+:host {
+  max-width: 240px;
+}
+
+.diff {
+  display: flex;
+  justify-content: space-between;
+  gap: 1ch;
+  margin-right: 0.55em;
+  cursor: default;
+
+  :not(.label) {
+    &.up {
+      color: rgb(255, 0, 0);
+      font-weight: 700;
+      &::after {
+        content: ' ↑';
+        position: absolute;
+      }
+    }
+    &.down {
+      color: rgb(0, 255, 0);
+      font-weight: 700;
+      &::after {
+        content: ' ↓';
+        position: absolute;
+      }
+    }
+    &.none {
+      color: transparent;
+      font-weight: 700;
+    }
+  }
+  .label.none {
+    color: #00000032;
+  }
+}
