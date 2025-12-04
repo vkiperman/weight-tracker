@@ -1,3 +1,4 @@
+import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideMockActions } from '@ngrx/effects/testing';
 import { Observable } from 'rxjs';
@@ -11,9 +12,10 @@ describe('WeightDataEffects', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         WeightDataEffects,
-        provideMockActions(() => actions$)
-      ]
+        provideMockActions(() => actions$!),
+      ],
     });
 
     effects = TestBed.inject(WeightDataEffects);

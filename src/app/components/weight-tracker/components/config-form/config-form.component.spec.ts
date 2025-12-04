@@ -2,8 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { provideZonelessChangeDetection } from '@angular/core';
 import { StoreModule } from '@ngrx/store';
-import { weightTrackerConfigReducer as weightTrackerConfig } from '../../store/weight-tracker-config.reducer';
-import { WeightTrackerConfigStore } from '../../store/weight-tracker-config.store';
+import { weightTrackerConfigReducer as weightTrackerConfig } from '@store/weight-tracker-config/weight-tracker-config.reducer';
+import { WeightTrackerConfigStore } from '@store/weight-tracker-config/weight-tracker-config.store';
 import { ConfigFormComponent } from './config-form.component';
 
 describe('ConfigFormComponent', () => {

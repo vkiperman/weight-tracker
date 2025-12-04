@@ -28,9 +28,10 @@ export function fillLinearDaily(data: WT_ChartDataPoint[], decimals = 1): WT_Cha
     .filter((p) => Number.isFinite(+p.x!))
     .sort((a, b) => +a.x! - +b.x!)
     .reduce((acc, cur, i, sorted) => {
+      const message = cur.message || '';
       // Always push the first point (or the segment's right endpoint inside the loop)
       if (i === 0) {
-        acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!) });
+        acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!), message });
         return acc;
       }
 
@@ -41,13 +42,13 @@ export function fillLinearDaily(data: WT_ChartDataPoint[], decimals = 1): WT_Cha
 
       if (gapDays < 1) {
         // Same day or out-of-order duplicate -> keep the latest point for that day
-        acc[acc.length - 1] = { x: new Date(cur.x!), y: roundMaybe(cur.y!) };
+        acc[acc.length - 1] = { x: new Date(cur.x!), y: roundMaybe(cur.y!), message };
         return acc;
       }
 
       // If exactly next day, just push the current point (no interpolation needed)
       if (gapDays === 1) {
-        acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!) });
+        acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!), message });
         return acc;
       }
 
@@ -57,11 +58,11 @@ export function fillLinearDaily(data: WT_ChartDataPoint[], decimals = 1): WT_Cha
         const x = new Date(+prev.x! + d * DAY_MS);
         const y = roundMaybe(prev.y! + (cur.y! - prev.y!) * ratio);
         const filledIn = true;
-        acc.push({ x, y, filledIn });
+        acc.push({ x, y, filledIn, message });
       }
 
       // Finally push the right endpoint
-      acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!) });
+      acc.push({ x: new Date(cur.x!), y: roundMaybe(cur.y!), message });
       return acc;
     }, [] as WT_ChartDataPoint[])
     .filter((p) => !seen.has(+p.x!) && seen.add(+p.x!));

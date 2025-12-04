@@ -18,8 +18,8 @@ export class StatsComponent {
   public canvasJSChart = input<CanvasJSChart>({} as CanvasJSChart);
 
   public handleShowTooltip(wt: number) {
-    const a = this.data().find(({ y }) => wt === y);
-    this.canvasJSChart()?.chart.toolTip.showAtX(a?.x);
+    const { x } = this.data().find(({ y }) => wt === y)!;
+    this.canvasJSChart()?.chart.toolTip.showAtX(x);
   }
 
   public handleHideTooltip() {

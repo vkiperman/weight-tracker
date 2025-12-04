@@ -14,6 +14,11 @@
   }
 }
 
+.flex {
+  display: flex;
+  gap: 8px;
+}
+
 .weight-entry-form {
   display: flex;
   gap: 4px;
@@ -37,6 +42,30 @@ form {
     input[type='number'] {
       width: 3.75em;
     }
+    .error {
+      color: rgb(255, 0, 0);
+      // font-size: 0.9em;
+      // margin-top: 2px;
+    }
+  }
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 8px;
+    margin-top: 4px;
+  }
+}
+dialog {
+  form {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  label {
+    height: auto;
+    width: 100%;
   }
 }
 .dashboard {
@@ -82,6 +111,49 @@ form {
     &::after {
       content: ' ↓';
       position: absolute;
+    }
+  }
+}
+.close-btn {
+  position: absolute;
+  background: none;
+  border: none;
+  font-size: 1.5rem; /* Makes the '×' large enough */
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  color: #fff;
+  right: 16px;
+  top: 16px;
+}
+
+dialog {
+  position: relative;
+  &::backdrop {
+    backdrop-filter: blur(4px);
+    transition: backdrop-filter 0.5s ease-out;
+  }
+  border-color: #888888 !important;
+  max-width: 60vw;
+  min-width: 20vw;
+  max-height: 60vh;
+  min-height: 20vh;
+
+  /* Default (open) styles */
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.3s ease-out;
+}
+
+@starting-style {
+  dialog {
+    /* Initial (pre-open) styles */
+    opacity: 0;
+    transform: translateY(-70px) scale(0.5);
+    &::backdrop {
+      backdrop-filter: blur(0);
     }
   }
 }
@@ -179,6 +251,7 @@ input.invalid {
   background-color: hsl(0, 100%, 92%);
 }
 
+textarea,
 input[type='text'] {
   padding: 3px 6px;
   border: 1px solid black;

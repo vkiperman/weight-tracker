@@ -8,6 +8,10 @@ html body {
   background-color: rgb(47, 47, 47);
 }
 
+body:has(dialog[open]) {
+  overflow: hidden;
+}
+
 /********** Range Input Styles **********/
 /*Range Reset*/
 input[type='range'] {
@@ -77,6 +81,8 @@ input[type='range']:focus::-moz-range-thumb {
   outline-offset: 0.125rem;
 }
 
+textarea,
+select,
 input[type='number'] {
   // font-size: 1.2em;
   padding: 2px 4px;

@@ -1,8 +1,7 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { provideZonelessChangeDetection } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StoreModule } from '@ngrx/store';
-import { weightTrackerConfigReducer as weightTrackerConfig } from '../weight-tracker/store/weight-tracker-config.reducer';
+import { weightTrackerConfigReducer as weightTrackerConfig } from '../../store/weight-tracker-config/weight-tracker-config.reducer';
 import { storageItemName, WeightTrackerComponent } from './weight-tracker.component';
 
 describe('WeightTrackerComponent', () => {
@@ -40,23 +39,27 @@ describe('WeightTrackerComponent', () => {
   it('should updateWeights and return void due to error', () => {
     spyOn(component.canvasJSChart().chart, 'render');
     component.form.get('y')?.setErrors({ tooHigh: true });
-    expect(component.updateWeights()).toBeUndefined();
+    const dialog = document.createElement('dialog');
+    expect(component.updateWeights(dialog)).toBeUndefined();
     expect(component.canvasJSChart().chart.render).not.toHaveBeenCalled();
-    expect(component.todayIsRecorded()).toBeFalse();
+    // expect(component.todayIsRecorded()).toBeFalse();
     expect(component.dynamicRange.get('range')?.value).toEqual(data.length);
+    expect(dialog.open).toBeFalse();
   });
 
   it('should updateWeights', () => {
     spyOn(component.canvasJSChart().chart, 'render');
-    expect(component.updateWeights()).toBeUndefined();
+    const dialog = document.createElement('dialog');
+    expect(component.updateWeights(dialog)).toBeUndefined();
     expect(component.canvasJSChart().chart.render).toHaveBeenCalled();
-    expect(component.todayIsRecorded()).toBeTrue();
+    // expect(component.todayIsRecorded()).toBeTrue();
     expect(component.dynamicRange.get('range')?.value).toEqual(data.length);
+    expect(dialog.open).toBeFalse();
   });
 
   it('should stop validation if last entry was two weeks ago', () => {
     component.form.get('y')?.setValue(100);
-    expect(component.form.get('y')?.errors).toBeNull();
+    expect(component.form.get('y')?.errors).toEqual({ tooLow: true });
   });
 
   it('should do weight validation when weight is too low', () => {

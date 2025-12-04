@@ -1,4 +1,4 @@
-import { reducer, initialState } from './weight-data.reducer';
+import { initialState, weightDataReducer as reducer } from './weight-data.reducer';
 
 describe('WeightData Reducer', () => {
   describe('an unknown action', () => {

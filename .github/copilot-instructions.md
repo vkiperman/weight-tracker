@@ -45,3 +45,44 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Design services around a single responsibility
 - Use the `providedIn: 'root'` option for singleton services
 - Use the `inject()` function instead of constructor injection
+
+## Testing Best Practices
+
+### Test Configuration
+
+- Use `provideZonelessChangeDetection()` in all `TestBed` configurations
+- Use `TestBed.inject()` for service injection instead of `new ServiceName()`
+- Configure `TestBed.configureTestingModule()` in `beforeEach` with required providers
+- For NgRx store dependencies, use `provideMockStore()` from `@ngrx/store/testing`
+- For NgRx effects, use `provideMockActions()` from `@ngrx/effects/testing`
+
+### Test Coverage
+
+- Maintain 100% test coverage for statements, branches, functions, and lines
+- Spec files must be co-located with their source files (e.g., `component.ts` and `component.spec.ts` in same directory)
+
+### Mocking
+
+- Use Jasmine's `spyOn()` for mocking methods and functions
+- When testing methods that require DOM elements (like `HTMLDialogElement`), use `document.createElement()` to create real elements rather than mocks
+- Declare DOM elements as `const` variables and add assertions to verify their state after method execution
+- For large mock data, create `*.mocks.ts` files in `src/mocks/` directory (outside of `app/`)
+
+### Test Structure
+
+- Use descriptive test names that explain the expected behavior
+- Group related tests using nested `describe` blocks
+- Avoid redundant "should be created" tests - if the service isn't created, other tests won't run anyway
+- Declare test data as constants at the top of `describe` blocks
+
+### Focus and Run
+
+- Convert `fdescribe` to `describe` before running the full test suite
+- Convert `fit` to `it` before running the full test suite
+- Never commit focused tests (`fdescribe`, `fit`)
+
+### Async Testing
+
+- Use `fakeAsync` with `tick()` for debounced operations and timer-based logic
+- Use `waitForAsync` for most other async operations
+- Raw promises can be used as return values when the code dictates it

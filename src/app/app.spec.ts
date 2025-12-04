@@ -2,7 +2,7 @@ import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { StoreModule } from '@ngrx/store';
 import { App } from './app';
-import { weightTrackerConfigReducer as weightTrackerConfig } from './components/weight-tracker/store/weight-tracker-config.reducer';
+import { weightTrackerConfigReducer as weightTrackerConfig } from './store/weight-tracker-config/weight-tracker-config.reducer';
 
 describe('App', () => {
   beforeEach(async () => {

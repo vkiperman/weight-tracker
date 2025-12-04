@@ -1,8 +1,8 @@
 import { provideZonelessChangeDetection } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { App } from '@app/app';
 import { Store, StoreModule } from '@ngrx/store';
 import { cold } from 'jasmine-marbles';
-import { App } from '../../../app';
 import { weightTrackerConfigActions } from './weight-tracker-config.actions';
 import {
   getWeightTrackerConfigState,

@@ -31,4 +31,5 @@ export interface Legend {
 
 export interface WT_ChartDataPoint extends ChartDataPoint {
   filledIn?: boolean;
+  message?: string;
 }

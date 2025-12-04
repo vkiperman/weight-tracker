@@ -4,12 +4,31 @@
       <canvasjs-chart [options]="data()" (chartInstance)="handleChartReady($event)" />
     </div>
 
-    <div class="dashboard formatted-container">
+    <dialog #enterWeight class="formatted-container" (click)="closeDialog($event)">
+      <button aria-label="Close" class="close-btn" (click)="hideDialog(enterWeight)">
+        &times;
+      </button>
       <div class="weight-entry-form">
-        <form [formGroup]="form" (submit)="updateWeights()">
-          @if (!todayIsRecorded()) {
-            <label for="wt">
-              Enter Weight
+        <h2>Enter Weight</h2>
+        <form [formGroup]="form" (submit)="updateWeights(enterWeight)">
+          <label for="date-select">
+            Edit by Date
+            <select [formControl]="selectedDate">
+              @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
+                <option [value]="dataPoint.x">
+                  {{ dataPoint.x | date }}
+                </option>
+              }
+              @if (showTodayOption()) {
+                <option [value]="today">
+                  {{ today | date }}
+                </option>
+              }
+            </select>
+          </label>
+          <label for="wt" #wt>
+            Weight
+            <div class="flex">
               <input
                 id="wt"
                 [class.invalid]="form.get('y')?.invalid && form.get('y')?.touched"
@@ -18,26 +37,44 @@
                 formControlName="y"
                 step=".1"
               />
-            </label>
-            <button><code>Save</code></button>
-          } @else {
-            <label (click)="todayIsRecorded.set(false)">
-              Enter Weight
-              <div [style]="{ 'margin-top': '2px' }">
-                <b>{{ form.get('y')?.value }} lbs</b>
-              </div>
-            </label>
-            <button type="button" (click)="todayIsRecorded.set(false)">
-              <code>Edit</code>
-            </button>
-          }
-        </form>
-        @if (form.get('y')?.errors; as errors) {
-          <div>
-            {{ errors?.['tooLow'] && 'Weight seems too low.' }}
-            {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
+              @if (form.get('y')?.errors; as errors) {
+                <span class="error">
+                  {{ errors?.['tooLow'] && 'Weight seems too low.' }}
+                  {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
+                </span>
+              }
+            </div>
+          </label>
+          <label for="msg">
+            Message (optional)
+            <textarea
+              id="msg"
+              placeholder="I had a great day!"
+              formControlName="message"
+              step=".1"
+            ></textarea>
+          </label>
+          <div class="buttons">
+            <button type="button" (click)="hideDialog(enterWeight)"><code>Cancel</code></button>
+            <button [disabled]="form.invalid"><code>Save</code></button>
           </div>
-        }
+        </form>
+      </div>
+    </dialog>
+
+    <div class="dashboard formatted-container">
+      <div class="weight-entry-form">
+        <form>
+          <label (click)="showEnterWeightDialog(enterWeight, wt)">
+            Enter Weight
+            <div [style]="{ 'margin-top': '2px' }">
+              <b>{{ form.get('y')?.value }} lbs</b>
+            </div>
+          </label>
+          <button type="button" (click)="showEnterWeightDialog(enterWeight, wt)">
+            <code>Edit</code>
+          </button>
+        </form>
         <div>{{ form.get('x')?.value | date }}</div>
         @if (mainData().dataPoints.at(-1)) {
           <div class="last-item">

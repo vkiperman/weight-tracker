@@ -44,10 +44,9 @@ export class WeightTrackerComponent implements OnInit {
   public weightTrackerConfig = signal<WeightTrackerConfigState | null>(null);
   public weightTrackerConfig$!: Observable<WeightTrackerConfigState>;
   public form = new FormGroup({
-    x: new FormControl<Date>(
-      new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()),
-    ),
+    x: new FormControl<Date>(new Date(new Date().setHours(0, 0, 0, 0))),
     y: new FormControl<number | null>(null),
+    message: new FormControl<string | null>(null),
     // w: new FormControl(new Date().getDay() < 1 || new Date().getDay() > 5),
   });
   public dynamicRange = new FormGroup({
@@ -55,6 +54,7 @@ export class WeightTrackerComponent implements OnInit {
   });
 
   public configForm!: FormGroup;
+  public selectedDate = new FormControl<Date | null>(null);
   public configForm$!: Observable<{ projectionSampleSize: number }>;
   private weightData = signal<WT_ChartDataPoint[]>([]);
 
@@ -62,7 +62,14 @@ export class WeightTrackerComponent implements OnInit {
     slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!),
   );
 
-  public todayIsRecorded = signal(false);
+  public today = this.form.value.x!;
+
+  public showTodayOption = computed(() => {
+    const lastEntry = this.mainData().dataPoints.at(-1);
+    if (!lastEntry) return true;
+    const lastEntryDate = new Date(new Date(lastEntry.x!).setHours(0, 0, 0, 0));
+    return this.today > lastEntryDate;
+  });
 
   public canvasJSChart = viewChild.required<CanvasJSChart>(CanvasJSChart);
 
@@ -87,7 +94,6 @@ export class WeightTrackerComponent implements OnInit {
       distinctUntilKeyChanged('projectionSampleSize'),
       tap(({ projectionSampleSize }) => {
         this.projected.set(slidingProjections(this.weightData(), projectionSampleSize));
-        console.log(this.visible);
         this.canvasJSChart().chart.render();
       }),
       startWith(this.configForm.value),
@@ -98,18 +104,46 @@ export class WeightTrackerComponent implements OnInit {
   }
 
   private init() {
-    this.weightData.update(() => this.getDedupedStoredData());
+    const dedupedStoredData = this.getDedupedStoredData();
+    this.weightData.update(() => dedupedStoredData);
 
-    this.form
-      .get('y')
-      ?.setValue(
-        +(this.weightData()[this.weightData().length - 1]?.y! * this.weightMultiplier).toFixed(1),
-      );
+    const lastItem = this.weightData().at(-1)!;
+    const lastEntryDate = new Date(new Date(lastItem.x!).setHours(0, 0, 0, 0));
+    const displayDate = new Date(Math.max(+this.form.get('x')!.value!, +lastEntryDate));
+    const hasTodayEntry = +this.form.get('x')!.value! === +lastEntryDate;
+
+    const setVisibleValues = () => {
+      this.form.get('y')?.setValue(+(lastItem.y! * this.weightMultiplier).toFixed(1));
+      this.form.get('message')?.setValue(hasTodayEntry ? lastItem.message! : null);
+      this.form.get('y')?.enable();
+    };
+    setVisibleValues();
+    this.selectedDate.setValue(displayDate);
+    this.selectedDate.valueChanges
+      .pipe(
+        filter((date) => !!date),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((date) => {
+        const entry = this.weightData().find(({ x }) => +x! === +new Date(date))!;
+        if (entry) {
+          this.form.get('x')?.setValue(new Date(entry?.x!));
+          this.form.get('y')?.setValue(+(entry?.y! * this.weightMultiplier).toFixed(1));
+          this.form.get('message')?.setValue(entry?.message!);
+
+          +new Date(date) !== +new Date(this.today)
+            ? this.form.get('y')?.disable()
+            : this.form.get('y')?.enable();
+        } else {
+          this.form.get('x')?.setValue(this.today);
+          setVisibleValues();
+        }
+      });
 
     this.dynamicRange.valueChanges
       .pipe(distinctUntilChanged(deepEqual), takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => {
-        this.weightData.set(this.getDedupedStoredData().slice(-v.range));
+        this.weightData.set(dedupedStoredData.slice(-v.range));
 
         this.projected.set(
           slidingProjections(
@@ -119,22 +153,19 @@ export class WeightTrackerComponent implements OnInit {
         );
       });
 
-    this.dynamicRange.get('range')?.setValue(this.getDedupedStoredData().length);
+    this.dynamicRange.get('range')?.setValue(dedupedStoredData.length);
 
     this.projected.set(
       slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value),
     );
-    this.todayIsRecorded.set(this.getTodayIsRecorded());
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ x, y }) => {
       const now = new Date(x!);
-      const sinceLastEntry = Math.max(
-        1,
-        now.getDate() - new Date(this.weightData()[this.weightData().length - 1]?.x!).getDate(),
-      );
+      const lastItem = this.weightData().at(-1)!;
+      const sinceLastEntry = Math.max(1, now.getDate() - new Date(lastItem.x!).getDate());
 
       if (sinceLastEntry >= 14) return; // skip validation if last entry was 2+ weeks ago
-      const prevWeight = this.weightData()[this.weightData().length - 1]?.y!;
+      const prevWeight = lastItem.y!;
       if (y && y < prevWeight - 14 * sinceLastEntry)
         return this.form.get('y')?.setErrors({ tooLow: true });
       if (y && y > prevWeight + 14 * sinceLastEntry)
@@ -143,13 +174,20 @@ export class WeightTrackerComponent implements OnInit {
     });
   }
 
+  public showEnterWeightDialog(dialog: HTMLDialogElement, wt: HTMLLabelElement) {
+    dialog.showModal();
+    wt?.focus();
+  }
+
   public getDedupedStoredData() {
     const seen = new Set<number>();
+
     return fillLinearDaily(
       [...JSON.parse(localStorage.getItem(storageItemName) || '[]')]
-        .map(({ x, y }: WT_ChartDataPoint) => ({
+        .map(({ x, y, message }: WT_ChartDataPoint) => ({
           x: new Date(x!),
           y: y! * this.weightMultiplier,
+          message,
         }))
         .filter((item: WT_ChartDataPoint) => !seen.has(+item.x!) && seen.add(+item.x!)),
     );
@@ -158,13 +196,27 @@ export class WeightTrackerComponent implements OnInit {
   // showDialog(dialog: HTMLDialogElement) {
   //   dialog.showModal();
   // }
-  // hideDialog(dialog: HTMLDialogElement) {
-  //   dialog.close();
-  // }
+  hideDialog(dialog: HTMLDialogElement) {
+    dialog.close();
+  }
+
+  public closeDialog(event: PointerEvent) {
+    const dialog = (event.target as HTMLElement)!.closest('dialog')!;
+    const rect = dialog.getBoundingClientRect();
+
+    if (
+      rect.left > event.clientX ||
+      rect.right < event.clientX ||
+      rect.top > event.clientY ||
+      rect.bottom < event.clientY
+    ) {
+      dialog.close();
+    }
+  }
 
   public handleShowTooltip(wt: number) {
-    const a = this.weightData().find(({ y }) => wt === y);
-    this.canvasJSChart().chart.toolTip.showAtX(a?.x);
+    const { x } = this.weightData().find(({ y }) => wt === y)!;
+    this.canvasJSChart().chart.toolTip.showAtX(x);
   }
 
   public handleHideTooltip() {
@@ -188,15 +240,11 @@ export class WeightTrackerComponent implements OnInit {
       color: 'rgb(255, 255, 255, .8)',
       name: 'Weight',
       showInLegend: true,
-      toolTipContent: `{y} ${units}<br>{x}`,
+      toolTipContent: `{y} ${units}<br>{x}<br>{message}`,
       type: 'line',
       visible: this.visible[5],
       xValueFormatString: 'DDD, MM/DD/YYYY',
-      dataPoints: this.weightData().map((w, i, src) => ({
-        ...w,
-        // lineColor: getColor(src[i + 1]?.y! || w.y!),
-        // color: getColor(w.y!),
-      })),
+      dataPoints: this.weightData(),
       lineThickness: 4,
     };
   });
@@ -317,12 +365,12 @@ export class WeightTrackerComponent implements OnInit {
         shared: false,
       },
       data: [
+        this.mainData(),
         this.lowData(),
         this.highData(),
         this.lastData(),
         this.lineOfBestFitData(),
         this.projectedData(),
-        this.mainData(),
       ],
     };
   });
@@ -333,48 +381,37 @@ export class WeightTrackerComponent implements OnInit {
   /* istanbul ignore next */
   private itemClick(e: ChartEvent) {
     const visible = e.dataSeries.visible === undefined || e.dataSeries.visible;
-    console.log(e.dataSeriesIndex);
     this.visible[e.dataSeriesIndex] = !visible;
     e.dataSeries.visible = this.visible[e.dataSeriesIndex];
 
     e.chart.render();
   }
 
-  public updateWeights() {
+  public updateWeights(dialog: HTMLDialogElement) {
     if (this.form.invalid) return;
 
-    this.dynamicRange.get('range')?.setValue(this.getDedupedStoredData().length);
+    const dedupedData = this.getDedupedStoredData();
 
-    this.weightData.update((state) => [
-      ...this.getDedupedStoredData().filter(({ x }) => +x! !== +this.form.value.x!),
-      this.form.value as ChartDataPoint,
-    ]);
+    this.dynamicRange.get('range')?.setValue(dedupedData.length);
+
+    this.weightData.update(() =>
+      [
+        ...dedupedData.filter(({ x }) => +x! !== +this.form.value.x!),
+        this.form.value as ChartDataPoint,
+      ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!)),
+    );
+
+    const weightData = this.weightData();
     this.projected.set(
-      slidingProjections(this.weightData(), this.configForm.get('projectionSampleSize')?.value),
+      slidingProjections(weightData, this.configForm.get('projectionSampleSize')?.value),
     );
     localStorage.setItem(
       storageItemName,
-      JSON.stringify(this.weightData().filter(({ filledIn }) => !filledIn)),
+      JSON.stringify(weightData.filter(({ filledIn }) => !filledIn)),
     );
-    this.todayIsRecorded.set(this.getTodayIsRecorded());
+
+    dialog.close();
 
     this.canvasJSChart().chart.render();
-  }
-
-  public getTodayIsRecorded() {
-    const d = new Date();
-    d.setHours(0);
-    d.setMinutes(0);
-    d.setSeconds(0);
-    d.setMilliseconds(0);
-
-    return this.weightData().some(
-      ({ x }) =>
-        new Date(
-          new Date(x!).getFullYear(),
-          new Date(x!).getMonth(),
-          new Date(x!).getDate(),
-        ).getTime() === d.getTime(),
-    );
   }
 }
