@@ -4,66 +4,65 @@
       <canvasjs-chart [options]="data()" (chartInstance)="handleChartReady($event)" />
     </div>
 
-    <dialog #enterWeight class="formatted-container" (click)="closeDialog($event)">
-      <button aria-label="Close" class="close-btn" (click)="hideDialog(enterWeight)">
-        &times;
-      </button>
-      <div class="weight-entry-form">
-        <h2>Enter Weight</h2>
-        <form [formGroup]="form" (submit)="updateWeights(enterWeight)">
-          <label for="date-select">
-            Edit by Date
-            <select [formControl]="selectedDate">
-              @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
-                <option [value]="dataPoint.x">
-                  {{ dataPoint.x | date }}
-                </option>
-              }
-              @if (showTodayOption()) {
-                <option [value]="today">
-                  {{ today | date }}
-                </option>
-              }
-            </select>
-          </label>
-          <label for="wt" #wt>
-            Weight
-            <div class="flex">
-              <input
-                id="wt"
-                [class.invalid]="form.get('y')?.invalid && form.get('y')?.touched"
-                type="number"
-                placeholder="175.2"
-                formControlName="y"
-                step=".1"
-              />
-              @if (form.get('y')?.errors; as errors) {
-                <span class="error">
-                  {{ errors?.['tooLow'] && 'Weight seems too low.' }}
-                  {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
-                </span>
-              }
-            </div>
-          </label>
-          <label for="msg">
-            Message (optional)
-            <textarea
-              id="msg"
-              placeholder="I had a great day!"
-              formControlName="message"
-              step=".1"
-            ></textarea>
-          </label>
-          <div class="buttons">
-            <button type="button" (click)="hideDialog(enterWeight)"><code>Cancel</code></button>
-            <button [disabled]="form.invalid"><code>Save</code></button>
-          </div>
-        </form>
-      </div>
-    </dialog>
-
     <div class="dashboard formatted-container">
       <div class="weight-entry-form">
+        <dialog #enterWeight class="formatted-container" (click)="closeDialog($event)">
+          <button aria-label="Close" class="close-btn" (click)="hideDialog(enterWeight)">
+            &times;
+          </button>
+          <div class="weight-entry-form">
+            <h2>Enter Weight</h2>
+            <form [formGroup]="form" (submit)="updateWeights(enterWeight)">
+              <label for="date-select">
+                Edit by Date
+                <select [formControl]="selectedDate">
+                  @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
+                    <option [value]="dataPoint.x">
+                      {{ dataPoint.x | date }}
+                    </option>
+                  }
+                  @if (showTodayOption()) {
+                    <option [value]="today">
+                      {{ today | date }}
+                    </option>
+                  }
+                </select>
+              </label>
+              <label for="wt" #wt>
+                Weight
+                <div class="flex">
+                  <input
+                    id="wt"
+                    [class.invalid]="form.get('y')?.invalid && form.get('y')?.touched"
+                    type="number"
+                    placeholder="175.2"
+                    formControlName="y"
+                    step=".1"
+                  />
+                  @if (form.get('y')?.errors; as errors) {
+                    <span class="error">
+                      {{ errors?.['tooLow'] && 'Weight seems too low.' }}
+                      {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
+                    </span>
+                  }
+                </div>
+              </label>
+              <label for="msg">
+                Message (optional)
+                <textarea
+                  id="msg"
+                  placeholder="I had a great day!"
+                  formControlName="message"
+                  step=".1"
+                ></textarea>
+              </label>
+              <div class="buttons">
+                <button type="button" (click)="hideDialog(enterWeight)"><code>Cancel</code></button>
+                <button [disabled]="form.invalid"><code>Save</code></button>
+              </div>
+            </form>
+          </div>
+        </dialog>
         <form>
           <label (click)="showEnterWeightDialog(enterWeight, wt)">
             Enter Weight
@@ -93,27 +92,11 @@
           <!-- <pre>{{ config | json }}</pre> -->
           <div class="weight-tracker">
             <form [formGroup]="configForm">
-              <datalist id="values">
-                <option value="2" label="2"></option>
-                <option value="4" label="4"></option>
-                <option value="6" label="6"></option>
-                <option value="8" label="8"></option>
-                <option value="10" label="10"></option>
-                <option value="12" label="12"></option>
-                <option value="14" label="14"></option>
-              </datalist>
-              <label>
-                Projection Precision (last
-                {{ config.projectionSampleSize }} weigh-ins)
-                <br />
-                <input
-                  list="values"
-                  type="range"
-                  formControlName="projectionSampleSize"
-                  min="2"
-                  max="14"
-                />
-              </label>
+              <projection-input
+                [label]="
+                  'Projection Precision (last ' + config.projectionSampleSize + ' weigh-ins)'
+                "
+              />
             </form>
             <form [formGroup]="dynamicRange">
               <dynamic-range-input

@@ -1,0 +1,18 @@
+<ng-container [formGroup]="formGroup">
+  <datalist id="projectionValues">
+    @for (val of rangevalues; track $index) {
+      <option [value]="val" [label]="val"></option>
+    }
+  </datalist>
+  <label>
+    {{ label() }}
+    <br />
+    <input
+      list="projectionValues"
+      type="range"
+      formControlName="projectionSampleSize"
+      [min]="min()"
+      [max]="max()"
+    />
+  </label>
+</ng-container>

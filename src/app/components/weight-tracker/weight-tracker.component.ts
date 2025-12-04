@@ -19,6 +19,7 @@ import {
 } from 'rxjs';
 import { DiffComponent } from './components/diff/diff.component';
 import { DynamicRangeInputComponent } from './components/dynamic-range-input/dynamic-range-input.component';
+import { ProjectionInput } from './components/projection-input/projection-input';
 import { StatsComponent } from './components/stats/stats.component';
 import { WT_ChartDataPoint } from './weight-tracker.types';
 
@@ -33,6 +34,7 @@ export const storageItemName = 'weight-tracker';
     ReactiveFormsModule,
     StatsComponent,
     DynamicRangeInputComponent,
+    ProjectionInput,
   ],
   templateUrl: './weight-tracker.component.html',
   styleUrl: './weight-tracker.component.scss',
@@ -41,13 +43,13 @@ export class WeightTrackerComponent implements OnInit {
   private weightDataStore = inject(WeightDataStore);
   private destroyRef = inject(DestroyRef);
   private store = inject(WeightTrackerConfigStore);
+  private weightData = signal<WT_ChartDataPoint[]>([]);
   public weightTrackerConfig = signal<WeightTrackerConfigState | null>(null);
   public weightTrackerConfig$!: Observable<WeightTrackerConfigState>;
   public form = new FormGroup({
     x: new FormControl<Date>(new Date(new Date().setHours(0, 0, 0, 0))),
-    y: new FormControl<number | null>(null),
+    y: new FormControl<number | null>(null, { updateOn: 'submit' }),
     message: new FormControl<string | null>(null),
-    // w: new FormControl(new Date().getDay() < 1 || new Date().getDay() > 5),
   });
   public dynamicRange = new FormGroup({
     range: new FormControl(),
@@ -56,7 +58,6 @@ export class WeightTrackerComponent implements OnInit {
   public configForm!: FormGroup;
   public selectedDate = new FormControl<Date | null>(null);
   public configForm$!: Observable<{ projectionSampleSize: number }>;
-  private weightData = signal<WT_ChartDataPoint[]>([]);
 
   public readonly projected = signal(
     slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!),
@@ -282,7 +283,7 @@ export class WeightTrackerComponent implements OnInit {
     const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     const high = this.weightData().reduce((acc, cur) => (!acc || cur.y! > acc.y! ? cur : acc));
     return {
-      color: 'rgba(255, 0, 0, .2)',
+      color: 'rgba(255, 0, 0, .6)',
       name: 'High',
       toolTipContent: `High: {y} ${units}`,
       type: 'line',
@@ -292,8 +293,8 @@ export class WeightTrackerComponent implements OnInit {
         { ...high, x: this.weightData()[0].x },
         { ...high, x: this.weightData().at(-1)!.x },
       ],
-      lineThickness: 7,
-      lineDashType: 'solid',
+      lineThickness: 2,
+      lineDashType: 'shortDot',
       markerType: 'none',
     };
   });
@@ -301,7 +302,7 @@ export class WeightTrackerComponent implements OnInit {
     const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     const low = this.weightData().reduce((acc, cur) => (!acc || cur.y! < acc.y! ? cur : acc));
     return {
-      color: 'rgba(0, 255, 0, .2)',
+      color: 'rgba(0, 255, 0, .6)',
       name: 'Low',
       toolTipContent: `Low: {y} ${units}`,
       type: 'line',
@@ -311,8 +312,8 @@ export class WeightTrackerComponent implements OnInit {
         { ...low, x: this.weightData()[0].x },
         { ...low, x: this.weightData().at(-1)!.x },
       ],
-      lineThickness: 7,
-      lineDashType: 'solid',
+      lineThickness: 2,
+      lineDashType: 'shortDot',
       markerType: 'none',
     };
   });
@@ -320,15 +321,15 @@ export class WeightTrackerComponent implements OnInit {
     const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     const left = { ...this.weightData().at(-1), x: this.weightData().at(0)!.x };
     return {
-      color: 'rgba(255, 255, 255, .2)',
+      color: 'rgba(255, 255, 255, .6)',
       name: 'Low',
       toolTipContent: `Latest: {y} ${units}`,
       type: 'line',
       visible: this.visible[2],
       xValueFormatString: 'DDD, MM/DD/YYYY',
       dataPoints: [left, this.weightData().at(-1)!],
-      lineThickness: 8,
-      lineDashType: 'solid',
+      lineThickness: 2,
+      lineDashType: 'shortDot',
       markerType: 'none',
     };
   });
@@ -378,14 +379,6 @@ export class WeightTrackerComponent implements OnInit {
   public handleChartReady(chart: CanvasJSChart['chart']) {
     chart.render();
   }
-  /* istanbul ignore next */
-  private itemClick(e: ChartEvent) {
-    const visible = e.dataSeries.visible === undefined || e.dataSeries.visible;
-    this.visible[e.dataSeriesIndex] = !visible;
-    e.dataSeries.visible = this.visible[e.dataSeriesIndex];
-
-    e.chart.render();
-  }
 
   public updateWeights(dialog: HTMLDialogElement) {
     if (this.form.invalid) return;
@@ -397,7 +390,7 @@ export class WeightTrackerComponent implements OnInit {
     this.weightData.update(() =>
       [
         ...dedupedData.filter(({ x }) => +x! !== +this.form.value.x!),
-        this.form.value as ChartDataPoint,
+        this.form.getRawValue() as ChartDataPoint,
       ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!)),
     );
 
@@ -413,5 +406,13 @@ export class WeightTrackerComponent implements OnInit {
     dialog.close();
 
     this.canvasJSChart().chart.render();
+  }
+  /* istanbul ignore next */
+  private itemClick(e: ChartEvent) {
+    const visible = e.dataSeries.visible === undefined || e.dataSeries.visible;
+    this.visible[e.dataSeriesIndex] = !visible;
+    e.dataSeries.visible = this.visible[e.dataSeriesIndex];
+
+    e.chart.render();
   }
 }

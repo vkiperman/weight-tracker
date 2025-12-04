@@ -16,6 +16,26 @@ You are an expert in TypeScript, Angular, and scalable web application developme
 - Use `NgOptimizedImage` for all static images.
   - `NgOptimizedImage` does not work for inline base64 images.
 
+## Code Generation
+
+- Always use Angular CLI (`ng generate`) commands to create new assets:
+  - Components: `ng generate component <name>`
+  - Services: `ng generate service <name>`
+  - Pipes: `ng generate pipe <name>`
+  - Directives: `ng generate directive <name>`
+  - Guards: `ng generate guard <name>`
+  - Interceptors: `ng generate interceptor <name>`
+- Always use NgRx CLI (`ng generate`) commands to create NgRx assets:
+  - Store: `ng generate @ngrx/schematics:store <name>`
+  - Reducer: `ng generate @ngrx/schematics:reducer <name>`
+  - Effects: `ng generate @ngrx/schematics:effect <name>`
+  - Actions: `ng generate @ngrx/schematics:action <name>`
+  - Selectors: `ng generate @ngrx/schematics:selector <name>`
+  - Entity: `ng generate @ngrx/schematics:entity <name>`
+  - Feature: `ng generate @ngrx/schematics:feature <name>`
+- Never manually create component, service, or other Angular asset files
+- Never use `--skip-tests` flag when generating assets
+
 ## Components
 
 - Keep components small and focused on a single responsibility
