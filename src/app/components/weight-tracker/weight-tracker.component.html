@@ -6,74 +6,36 @@
 
     <div class="dashboard formatted-container">
       <div class="weight-entry-form">
-        <dialog #enterWeight class="formatted-container" (click)="closeDialog($event)">
-          <button aria-label="Close" class="close-btn" (click)="hideDialog(enterWeight)">
-            &times;
-          </button>
+        <modal #enterWeightModal>
           <div class="weight-entry-form">
-            <h2>Enter Weight</h2>
-            <form [formGroup]="form" (submit)="updateWeights(enterWeight)">
-              <label for="date-select">
-                Edit by Date
+            <div [formGroup]="form">
+              <weight-entry-form
+                (submitted)="updateWeights(enterWeightModal)"
+                (cancelled)="hideDialog(enterWeightModal)"
+              >
                 <select [formControl]="selectedDate">
                   @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
-                    <option [value]="dataPoint.x">
-                      {{ dataPoint.x | date }}
-                    </option>
+                    <option [value]="dataPoint.x">{{ dataPoint.x | date }}</option>
                   }
                   @if (showTodayOption()) {
-                    <option [value]="today">
-                      {{ today | date }}
-                    </option>
+                    <option [value]="today">{{ today | date }}</option>
                   }
                 </select>
-              </label>
-              <label for="wt" #wt>
-                Weight
-                <div class="flex">
-                  <input
-                    id="wt"
-                    [class.invalid]="form.get('y')?.invalid && form.get('y')?.touched"
-                    type="number"
-                    placeholder="175.2"
-                    formControlName="y"
-                    step=".1"
-                  />
-                  @if (form.get('y')?.errors; as errors) {
-                    <span class="error">
-                      {{ errors?.['tooLow'] && 'Weight seems too low.' }}
-                      {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
-                    </span>
-                  }
-                </div>
-              </label>
-              <label for="msg">
-                Message (optional)
-                <textarea
-                  id="msg"
-                  placeholder="I had a great day!"
-                  formControlName="message"
-                  step=".1"
-                ></textarea>
-              </label>
-              <div class="buttons">
-                <button type="button" (click)="hideDialog(enterWeight)"><code>Cancel</code></button>
-                <button [disabled]="form.invalid"><code>Save</code></button>
-              </div>
-            </form>
+              </weight-entry-form>
+            </div>
           </div>
-        </dialog>
-        <form>
-          <label (click)="showEnterWeightDialog(enterWeight, wt)">
+        </modal>
+        <div class="form">
+          <label (click)="showEnterWeightDialog(enterWeightModal)">
             Enter Weight
             <div [style]="{ 'margin-top': '2px' }">
               <b>{{ form.get('y')?.value }} lbs</b>
             </div>
           </label>
-          <button type="button" (click)="showEnterWeightDialog(enterWeight, wt)">
+          <button type="button" (click)="showEnterWeightDialog(enterWeightModal)">
             <code>Edit</code>
           </button>
-        </form>
+        </div>
         <div>{{ form.get('x')?.value | date }}</div>
         @if (mainData().dataPoints.at(-1)) {
           <div class="last-item">

@@ -1,0 +1,54 @@
+.flex {
+  display: flex;
+  gap: 8px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+
+  label {
+    display: flex;
+    gap: 4px;
+    flex-direction: column;
+    height: auto;
+    width: 100%;
+
+    input[type='number'] {
+      width: 3.75em;
+    }
+
+    .error {
+      color: rgb(255, 0, 0);
+    }
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+    gap: 8px;
+    margin-top: 4px;
+  }
+}
+
+input.invalid {
+  border-color: rgb(218, 0, 0);
+  background-color: hsl(0, 100%, 92%);
+}
+
+textarea,
+input[type='text'] {
+  padding: 3px 6px;
+  border: 1px solid black;
+}
+
+button {
+  border-radius: 100vw;
+  border: 1px solid black;
+  padding: 3px 9px;
+  margin: 0;
+}

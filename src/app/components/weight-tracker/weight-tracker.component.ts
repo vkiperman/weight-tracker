@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Modal } from '@app/shared/components/modal/modal';
 import { WeightDataStore } from '@app/store/weight-data/weight-data.store';
 import { CanvasJSAngularChartsModule, CanvasJSChart } from '@canvasjs/angular-charts';
 import { WeightTrackerConfigState } from '@store/weight-tracker-config/weight-tracker-config.reducer';
@@ -21,6 +22,7 @@ import { DiffComponent } from './components/diff/diff.component';
 import { DynamicRangeInputComponent } from './components/dynamic-range-input/dynamic-range-input.component';
 import { ProjectionInput } from './components/projection-input/projection-input';
 import { StatsComponent } from './components/stats/stats.component';
+import { WeightEntryForm } from './components/weight-entry-form/weight-entry-form';
 import { WT_ChartDataPoint } from './weight-tracker.types';
 
 export const storageItemName = 'weight-tracker';
@@ -34,7 +36,9 @@ export const storageItemName = 'weight-tracker';
     ReactiveFormsModule,
     StatsComponent,
     DynamicRangeInputComponent,
+    Modal,
     ProjectionInput,
+    WeightEntryForm,
   ],
   templateUrl: './weight-tracker.component.html',
   styleUrl: './weight-tracker.component.scss',
@@ -175,9 +179,8 @@ export class WeightTrackerComponent implements OnInit {
     });
   }
 
-  public showEnterWeightDialog(dialog: HTMLDialogElement, wt: HTMLLabelElement) {
-    dialog.showModal();
-    wt?.focus();
+  public showEnterWeightDialog(modal: Modal) {
+    modal.open();
   }
 
   public getDedupedStoredData() {
@@ -194,25 +197,8 @@ export class WeightTrackerComponent implements OnInit {
     );
   }
 
-  // showDialog(dialog: HTMLDialogElement) {
-  //   dialog.showModal();
-  // }
-  hideDialog(dialog: HTMLDialogElement) {
-    dialog.close();
-  }
-
-  public closeDialog(event: PointerEvent) {
-    const dialog = (event.target as HTMLElement)!.closest('dialog')!;
-    const rect = dialog.getBoundingClientRect();
-
-    if (
-      rect.left > event.clientX ||
-      rect.right < event.clientX ||
-      rect.top > event.clientY ||
-      rect.bottom < event.clientY
-    ) {
-      dialog.close();
-    }
+  public hideDialog(modal: Modal) {
+    modal.close();
   }
 
   public handleShowTooltip(wt: number) {
@@ -234,58 +220,49 @@ export class WeightTrackerComponent implements OnInit {
   }
 
   private visible: boolean[] = [true, true, true, false, false, true];
+  private units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
 
-  public mainData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
-    return {
-      color: 'rgb(255, 255, 255, .8)',
-      name: 'Weight',
-      showInLegend: true,
-      toolTipContent: `{y} ${units}<br>{x}<br>{message}`,
-      type: 'line',
-      visible: this.visible[5],
-      xValueFormatString: 'DDD, MM/DD/YYYY',
-      dataPoints: this.weightData(),
-      lineThickness: 4,
-    };
-  });
+  public mainData = computed<ChartDataSeriesOptions>(() => ({
+    color: 'rgb(255, 255, 255, .8)',
+    name: 'Weight',
+    showInLegend: true,
+    toolTipContent: `{y} ${this.units}<br>{x}<br>{message}`,
+    type: 'line',
+    visible: this.visible[5],
+    xValueFormatString: 'DDD, MM/DD/YYYY',
+    dataPoints: this.weightData(),
+    lineThickness: 4,
+  }));
 
-  private projectedData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
-    return {
-      visible: this.visible[4],
-      type: 'spline',
-      name: 'Projected Weight',
-      showInLegend: true,
-      color: 'hsla(188, 2%, 45%, 0.7)',
-      xValueFormatString: 'MM/DD/YYYY',
-      toolTipContent: `{y} ${units}<br>{x}`,
-      dataPoints: this.projected()!,
-      lineDashType: 'dash',
-    };
-  });
-  private lineOfBestFitData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
-    return {
-      visible: this.visible[3],
-      type: 'line',
-      name: 'Line of best fit',
-      showInLegend: true,
-      color: 'rgba(200, 200, 200, 0.85)',
-      xValueFormatString: 'MM/DD/YYYY',
-      toolTipContent: `{n} ${units}<br>{x}`,
-      dataPoints: lineOfBestFit(this.weightData())!,
-      lineDashType: 'dash',
-    };
-  });
+  private projectedData = computed<ChartDataSeriesOptions>(() => ({
+    visible: this.visible[4],
+    type: 'spline',
+    name: 'Projected Weight',
+    showInLegend: true,
+    color: 'hsla(188, 2%, 45%, 0.7)',
+    xValueFormatString: 'MM/DD/YYYY',
+    toolTipContent: `{y} ${this.units}<br>{x}`,
+    dataPoints: this.projected()!,
+    lineDashType: 'dash',
+  }));
+  private lineOfBestFitData = computed<ChartDataSeriesOptions>(() => ({
+    visible: this.visible[3],
+    type: 'line',
+    name: 'Line of best fit',
+    showInLegend: true,
+    color: 'rgba(200, 200, 200, 0.85)',
+    xValueFormatString: 'MM/DD/YYYY',
+    toolTipContent: `{n} ${this.units}<br>{x}`,
+    dataPoints: lineOfBestFit(this.weightData())!,
+    lineDashType: 'dash',
+  }));
 
   private highData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     const high = this.weightData().reduce((acc, cur) => (!acc || cur.y! > acc.y! ? cur : acc));
     return {
-      color: 'rgba(255, 0, 0, .6)',
+      color: 'rgba(255, 90, 90, 1)',
       name: 'High',
-      toolTipContent: `High: {y} ${units}`,
+      toolTipContent: `High: {y} ${this.units}`,
       type: 'line',
       visible: this.visible[1],
       xValueFormatString: 'DDD, MM/DD/YYYY',
@@ -299,12 +276,11 @@ export class WeightTrackerComponent implements OnInit {
     };
   });
   private lowData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     const low = this.weightData().reduce((acc, cur) => (!acc || cur.y! < acc.y! ? cur : acc));
     return {
       color: 'rgba(0, 255, 0, .6)',
       name: 'Low',
-      toolTipContent: `Low: {y} ${units}`,
+      toolTipContent: `Low: {y} ${this.units}`,
       type: 'line',
       visible: this.visible[0],
       xValueFormatString: 'DDD, MM/DD/YYYY',
@@ -318,12 +294,11 @@ export class WeightTrackerComponent implements OnInit {
     };
   });
   private lastData = computed<ChartDataSeriesOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
-    const left = { ...this.weightData().at(-1), x: this.weightData().at(0)!.x };
+    const left = { ...this.weightData().at(-1), x: this.weightData()[0]!.x };
     return {
       color: 'rgba(255, 255, 255, .6)',
       name: 'Low',
-      toolTipContent: `Latest: {y} ${units}`,
+      toolTipContent: `Latest: {y} ${this.units}`,
       type: 'line',
       visible: this.visible[2],
       xValueFormatString: 'DDD, MM/DD/YYYY',
@@ -335,14 +310,13 @@ export class WeightTrackerComponent implements OnInit {
   });
 
   public data = computed<ChartOptions>(() => {
-    const units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
     return {
       animationEnabled: true,
       showInLegend: true,
       zoomEnabled: true,
       theme: 'dark1',
       title: {
-        text: 'Weight Tracker',
+        text: 'GlowDown ',
         fontFamily: 'Roboto Condensed, Verdana, Monospace',
         padding: 8,
         dockInsidePlotArea: false,
@@ -353,8 +327,8 @@ export class WeightTrackerComponent implements OnInit {
         interlacedColor: '#0000003A',
       },
       axisY: {
-        title: `Weight (in ${units})`,
-        suffix: units,
+        title: `Weight (in ${this.units})`,
+        suffix: this.units,
       },
       legend: {
         cursor: 'pointer',
@@ -380,7 +354,7 @@ export class WeightTrackerComponent implements OnInit {
     chart.render();
   }
 
-  public updateWeights(dialog: HTMLDialogElement) {
+  public updateWeights(modal: Modal) {
     if (this.form.invalid) return;
 
     const dedupedData = this.getDedupedStoredData();
@@ -403,7 +377,7 @@ export class WeightTrackerComponent implements OnInit {
       JSON.stringify(weightData.filter(({ filledIn }) => !filledIn)),
     );
 
-    dialog.close();
+    modal.close();
 
     this.canvasJSChart().chart.render();
   }

@@ -8,18 +8,84 @@ import {
 } from './weight-tracker.utils';
 
 describe('Weight Tracker Utils', () => {
-  it('should calculate linear regression correctly', () => {
-    const data = [
-      { x: new Date('2024-01-01'), y: 2 },
-      { x: new Date('2024-01-04'), y: 7 },
-    ];
-    const result = fillLinearDaily(data);
-    expect(result).toEqual([
-      { x: new Date('2024-01-01'), y: 2, message: '' },
-      { x: new Date('2024-01-02'), y: 3.7, filledIn: true, message: '' },
-      { x: new Date('2024-01-03'), y: 5.3, filledIn: true, message: '' },
-      { x: new Date('2024-01-04'), y: 7, message: '' },
-    ]);
+  describe('fillLinearDaily', () => {
+    it('should calculate linear regression correctly', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 2 },
+        { x: new Date('2024-01-04'), y: 7 },
+      ];
+      const result = fillLinearDaily(data);
+      expect(result).toEqual([
+        { x: new Date('2024-01-01'), y: 2, message: '' },
+        { x: new Date('2024-01-02'), y: 3.7, filledIn: true, message: '' },
+        { x: new Date('2024-01-03'), y: 5.3, filledIn: true, message: '' },
+        { x: new Date('2024-01-04'), y: 7, message: '' },
+      ]);
+    });
+
+    it('should return empty array for empty input', () => {
+      expect(fillLinearDaily([])).toEqual([]);
+    });
+
+    it('should return empty array for non-array input', () => {
+      expect(fillLinearDaily(null as any)).toEqual([]);
+      expect(fillLinearDaily(undefined as any)).toEqual([]);
+    });
+
+    it('should handle single data point', () => {
+      const data = [{ x: new Date('2024-01-01'), y: 5 }];
+      const result = fillLinearDaily(data);
+      expect(result.length).toBe(1);
+      expect(result[0].y).toBe(5);
+    });
+
+    it('should handle consecutive days without interpolation', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 10 },
+        { x: new Date('2024-01-02'), y: 12 },
+      ];
+      const result = fillLinearDaily(data);
+      expect(result.length).toBe(2);
+    });
+
+    it('should handle same day duplicates', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 10 },
+        { x: new Date('2024-01-01'), y: 15 },
+      ];
+      const result = fillLinearDaily(data);
+      expect(result.length).toBe(1);
+      expect(result[0].y).toBe(15); // keeps latest
+    });
+
+    it('should filter out invalid dates', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 10 },
+        { x: new Date('invalid'), y: 15 },
+        { x: new Date('2024-01-02'), y: 12 },
+      ];
+      const result = fillLinearDaily(data);
+      expect(result.length).toBe(2);
+    });
+
+    it('should preserve message field', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 10, message: 'hello' },
+        { x: new Date('2024-01-03'), y: 12, message: 'world' },
+      ];
+      const result = fillLinearDaily(data);
+      expect(result[0].message).toBe('hello');
+      expect(result[2].message).toBe('world');
+    });
+
+    it('should handle decimals parameter as null', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 2 },
+        { x: new Date('2024-01-04'), y: 7 },
+      ];
+      const result = fillLinearDaily(data, null as any);
+      expect(result[1].y).toBe(2 + (7 - 2) * (1 / 3));
+    });
   });
 
   describe('lineOfBestFit', () => {
@@ -87,6 +153,20 @@ describe('Weight Tracker Utils', () => {
       const result = slidingProjections(data, 7);
       expect(result.length).toBe(1);
       expect(result[0].y).toBe(100);
+    });
+
+    it('should handle empty array', () => {
+      const result = slidingProjections([], 7);
+      expect(result).toEqual([]);
+    });
+
+    it('should handle identical x values (denominator zero)', () => {
+      const data = [
+        { x: new Date('2024-01-01'), y: 100 },
+        { x: new Date('2024-01-01'), y: 105 },
+      ];
+      const result = slidingProjections(data, 2);
+      expect(result.length).toBeGreaterThan(0);
     });
   });
 });

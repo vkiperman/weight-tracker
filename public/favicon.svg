@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <!-- Warm feminine gradient - coral to rose -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF7EB3;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B9D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E84A7F;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Soft rounded background -->
+  <circle cx="32" cy="32" r="30" fill="url(#bgGradient)" />
+  
+  <!-- Subtle glow ring for warmth -->
+  <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
+  
+  <!-- Downward trending line - represents achieving weight goals -->
+  <!-- Starts high (left), ends low (right) = weight loss success -->
+  <polyline 
+    points="12,22 20,26 28,31 36,35 46,38" 
+    fill="none" 
+    stroke="rgba(255,255,255,0.9)" 
+    stroke-width="4" 
+    stroke-linecap="round" 
+    stroke-linejoin="round"
+  />
+  
+  <!-- Data point markers - each one is a brave daily weigh-in -->
+  <circle cx="12" cy="22" r="3.5" fill="#FFFFFF" />
+  <circle cx="28" cy="31" r="3" fill="#FFFFFF" />
+  
+  <!-- Heart at the final data point - self-love, celebrating the journey -->
+  <path 
+    d="M46,38 
+       C46,34 49,31 53,31 
+       C57,31 60,34 60,38 
+       C60,44 46,52 46,52 
+       C46,52 32,44 32,38 
+       C32,34 35,31 39,31 
+       C43,31 46,34 46,38 Z" 
+    fill="#FFFFFF"
+  />
+</svg>

@@ -1,0 +1,39 @@
+<h2>Enter Weight</h2>
+<form (submit)="onSubmit($event)" [formGroup]="formGroup">
+  <label for="date-select">
+    Edit by Date
+    <ng-content />
+  </label>
+  <label for="wt">
+    Weight
+    <div class="flex">
+      <input
+        id="wt"
+        [class.invalid]="formGroup.get('y')?.invalid && formGroup.get('y')?.touched"
+        type="number"
+        placeholder="175.2"
+        formControlName="y"
+        step=".1"
+      />
+      @if (formGroup.get('y')?.errors; as errors) {
+        <span class="error">
+          {{ errors?.['tooLow'] && 'Weight seems too low.' }}
+          {{ errors?.['tooHigh'] && 'Weight seems too high.' }}
+        </span>
+      }
+    </div>
+  </label>
+  <label for="msg">
+    Message (optional)
+    <textarea
+      id="msg"
+      placeholder="I had a great day!"
+      formControlName="message"
+      step=".1"
+    ></textarea>
+  </label>
+  <div class="buttons">
+    <button type="button" (click)="onCancel()"><code>Cancel</code></button>
+    <button [disabled]="formGroup.invalid"><code>Save</code></button>
+  </div>
+</form>

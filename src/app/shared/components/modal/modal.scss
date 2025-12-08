@@ -1,0 +1,49 @@
+dialog {
+  position: relative;
+  border-color: #888888 !important;
+  max-width: 60vw;
+  min-width: 20vw;
+  max-height: 60vh;
+  min-height: 20vh;
+
+  padding: 1em;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background-color: #282828;
+  color: rgb(230, 230, 230);
+
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 0.4s ease-out,
+    transform 0.3s ease-out;
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    transition: backdrop-filter 0.5s ease-out;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    color: #fff;
+  }
+}
+
+@starting-style {
+  dialog {
+    opacity: 0;
+    transform: translateY(-70px) scale(0.5);
+    &::backdrop {
+      backdrop-filter: blur(0);
+    }
+  }
+}

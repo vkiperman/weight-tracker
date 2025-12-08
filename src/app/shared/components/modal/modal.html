@@ -1,0 +1,4 @@
+<dialog #dialog class="formatted-container" (click)="closeOnBackdropClick($event)">
+  <button aria-label="Close" class="close-btn" type="button" (click)="close()">&times;</button>
+  <ng-content />
+</dialog>
