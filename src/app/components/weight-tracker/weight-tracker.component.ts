@@ -181,6 +181,8 @@ export class WeightTrackerComponent implements OnInit {
 
   public showEnterWeightDialog(modal: Modal) {
     modal.open();
+    const wt = modal.dialogRef().nativeElement.querySelector('input#wt') as HTMLInputElement;
+    wt.focus();
   }
 
   public getDedupedStoredData() {

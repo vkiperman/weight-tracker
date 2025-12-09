@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit, output } from '@angular/core';
 import { ControlContainer, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Autoselect } from '@app/shared/directives/autoselect';
 
 @Component({
   selector: 'weight-entry-form',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, Autoselect],
   templateUrl: './weight-entry-form.html',
   styleUrl: './weight-entry-form.scss',
 })

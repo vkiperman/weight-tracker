@@ -13,14 +13,17 @@
                 (submitted)="updateWeights(enterWeightModal)"
                 (cancelled)="hideDialog(enterWeightModal)"
               >
-                <select [formControl]="selectedDate">
-                  @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
-                    <option [value]="dataPoint.x">{{ dataPoint.x | date }}</option>
-                  }
-                  @if (showTodayOption()) {
-                    <option [value]="today">{{ today | date }}</option>
-                  }
-                </select>
+                <label for="date-select">
+                  <div>Edit by Date</div>
+                  <select [formControl]="selectedDate" id="date-select">
+                    @for (dataPoint of mainData().dataPoints; track dataPoint.x; let last = $last) {
+                      <option [value]="dataPoint.x">{{ dataPoint.x | date }}</option>
+                    }
+                    @if (showTodayOption()) {
+                      <option [value]="today">{{ today | date }}</option>
+                    }
+                  </select>
+                </label>
               </weight-entry-form>
             </div>
           </div>

@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, viewChild } from '@angu
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Modal {
-  private dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
+  public readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
   public open(): void {
     this.dialogRef().nativeElement.showModal();

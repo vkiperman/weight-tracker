@@ -1,13 +1,11 @@
 <h2>Enter Weight</h2>
 <form (submit)="onSubmit($event)" [formGroup]="formGroup">
-  <label for="date-select">
-    Edit by Date
-    <ng-content />
-  </label>
+  <ng-content />
   <label for="wt">
     Weight
     <div class="flex">
       <input
+        autoselect
         id="wt"
         [class.invalid]="formGroup.get('y')?.invalid && formGroup.get('y')?.touched"
         type="number"
