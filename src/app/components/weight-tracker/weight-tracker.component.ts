@@ -148,7 +148,7 @@ export class WeightTrackerComponent implements OnInit {
     this.dynamicRange.valueChanges
       .pipe(distinctUntilChanged(deepEqual), takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => {
-        this.weightData.set(dedupedStoredData.slice(-v.range));
+        this.weightData.set(this.getDedupedStoredData().slice(-v.range));
 
         this.projected.set(
           slidingProjections(
@@ -318,7 +318,7 @@ export class WeightTrackerComponent implements OnInit {
       zoomEnabled: true,
       theme: 'dark1',
       title: {
-        text: 'GlowDown ',
+        text: 'TrendTrim ',
         fontFamily: 'Roboto Condensed, Verdana, Monospace',
         padding: 8,
         dockInsidePlotArea: false,

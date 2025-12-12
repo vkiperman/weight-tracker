@@ -6,11 +6,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'glowdown',
+        redirectTo: 'trendtrim',
         pathMatch: 'full',
       },
       {
-        path: 'glowdown',
+        path: 'trendtrim',
         loadComponent: () =>
           import('./components/weight-tracker/weight-tracker.component').then(
             (m) => m.WeightTrackerComponent,

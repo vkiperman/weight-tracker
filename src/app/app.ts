@@ -9,5 +9,5 @@ import { Nav } from './components/nav/nav';
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = signal('GlowDown');
+  protected readonly title = signal('TrendTrim');
 }
