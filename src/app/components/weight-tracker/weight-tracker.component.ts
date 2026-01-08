@@ -64,7 +64,7 @@ export class WeightTrackerComponent implements OnInit {
   public configForm$!: Observable<{ projectionSampleSize: number }>;
 
   public readonly projected = signal(
-    slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!),
+    slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!)
   );
 
   public today = this.form.value.x!;
@@ -89,7 +89,7 @@ export class WeightTrackerComponent implements OnInit {
       filter((state) => !!state),
       tap((state) => this.weightTrackerConfig.set(state)),
       distinctUntilChanged(deepEqual),
-      tap(this.init.bind(this)),
+      tap(this.init.bind(this))
     );
 
     this.configForm = new FormGroup({
@@ -101,7 +101,7 @@ export class WeightTrackerComponent implements OnInit {
         this.projected.set(slidingProjections(this.weightData(), projectionSampleSize));
         this.canvasJSChart().chart.render();
       }),
-      startWith(this.configForm.value),
+      startWith(this.configForm.value)
     );
     setTimeout(() => {
       localStorage.setItem(`${storageItemName}-backup`, localStorage.getItem(storageItemName)!);
@@ -127,7 +127,7 @@ export class WeightTrackerComponent implements OnInit {
     this.selectedDate.valueChanges
       .pipe(
         filter((date) => !!date),
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe((date) => {
         const entry = this.weightData().find(({ x }) => +x! === +new Date(date))!;
@@ -153,15 +153,16 @@ export class WeightTrackerComponent implements OnInit {
         this.projected.set(
           slidingProjections(
             this.weightData(),
-            this.configForm?.get('projectionSampleSize')?.value!,
-          ),
+            this.configForm?.get('projectionSampleSize')?.value!
+          )
         );
+        console.log(this.visible);
       });
 
     this.dynamicRange.get('range')?.setValue(dedupedStoredData.length);
 
     this.projected.set(
-      slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value),
+      slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value)
     );
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ x, y }) => {
@@ -195,7 +196,7 @@ export class WeightTrackerComponent implements OnInit {
           y: y! * this.weightMultiplier,
           message,
         }))
-        .filter((item: WT_ChartDataPoint) => !seen.has(+item.x!) && seen.add(+item.x!)),
+        .filter((item: WT_ChartDataPoint) => !seen.has(+item.x!) && seen.add(+item.x!))
     );
   }
 
@@ -230,14 +231,14 @@ export class WeightTrackerComponent implements OnInit {
     showInLegend: true,
     toolTipContent: `{y} ${this.units}<br>{x}<br>{message}`,
     type: 'line',
-    visible: this.visible[5],
+    // visible: this.visible[0],
     xValueFormatString: 'DDD, MM/DD/YYYY',
     dataPoints: this.weightData(),
     lineThickness: 4,
   }));
 
   private projectedData = computed<ChartDataSeriesOptions>(() => ({
-    visible: this.visible[4],
+    // visible: this.visible[5],
     type: 'spline',
     name: 'Projected Weight',
     showInLegend: true,
@@ -248,7 +249,7 @@ export class WeightTrackerComponent implements OnInit {
     lineDashType: 'dash',
   }));
   private lineOfBestFitData = computed<ChartDataSeriesOptions>(() => ({
-    visible: this.visible[3],
+    // visible: this.visible[4],
     type: 'line',
     name: 'Line of best fit',
     showInLegend: true,
@@ -266,7 +267,7 @@ export class WeightTrackerComponent implements OnInit {
       name: 'High',
       toolTipContent: `High: {y} ${this.units}`,
       type: 'line',
-      visible: this.visible[1],
+      // visible: this.visible[2],
       xValueFormatString: 'DDD, MM/DD/YYYY',
       dataPoints: [
         { ...high, x: this.weightData()[0].x },
@@ -284,7 +285,7 @@ export class WeightTrackerComponent implements OnInit {
       name: 'Low',
       toolTipContent: `Low: {y} ${this.units}`,
       type: 'line',
-      visible: this.visible[0],
+      // visible: this.visible[1],
       xValueFormatString: 'DDD, MM/DD/YYYY',
       dataPoints: [
         { ...low, x: this.weightData()[0].x },
@@ -302,7 +303,7 @@ export class WeightTrackerComponent implements OnInit {
       name: 'Low',
       toolTipContent: `Latest: {y} ${this.units}`,
       type: 'line',
-      visible: this.visible[2],
+      // visible: this.visible[3],
       xValueFormatString: 'DDD, MM/DD/YYYY',
       dataPoints: [left, this.weightData().at(-1)!],
       lineThickness: 2,
@@ -348,7 +349,10 @@ export class WeightTrackerComponent implements OnInit {
         this.lastData(),
         this.lineOfBestFitData(),
         this.projectedData(),
-      ],
+      ].map((dataItem, i) => {
+        dataItem.visible = this.visible[i];
+        return dataItem;
+      }),
     };
   });
 
@@ -367,16 +371,16 @@ export class WeightTrackerComponent implements OnInit {
       [
         ...dedupedData.filter(({ x }) => +x! !== +this.form.value.x!),
         this.form.getRawValue() as ChartDataPoint,
-      ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!)),
+      ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!))
     );
 
     const weightData = this.weightData();
     this.projected.set(
-      slidingProjections(weightData, this.configForm.get('projectionSampleSize')?.value),
+      slidingProjections(weightData, this.configForm.get('projectionSampleSize')?.value)
     );
     localStorage.setItem(
       storageItemName,
-      JSON.stringify(weightData.filter(({ filledIn }) => !filledIn)),
+      JSON.stringify(weightData.filter(({ filledIn }) => !filledIn))
     );
 
     modal.close();
