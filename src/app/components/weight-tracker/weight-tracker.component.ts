@@ -156,7 +156,6 @@ export class WeightTrackerComponent implements OnInit {
             this.configForm?.get('projectionSampleSize')?.value!
           )
         );
-        console.log(this.visible);
       });
 
     this.dynamicRange.get('range')?.setValue(dedupedStoredData.length);
@@ -169,12 +168,13 @@ export class WeightTrackerComponent implements OnInit {
       const now = new Date(x!);
       const lastItem = this.weightData().at(-1)!;
       const sinceLastEntry = Math.max(1, now.getDate() - new Date(lastItem.x!).getDate());
+      const fortnight = 14;
 
-      if (sinceLastEntry >= 14) return; // skip validation if last entry was 2+ weeks ago
+      if (sinceLastEntry >= fortnight) return; // skip validation if last entry was 2+ weeks ago
       const prevWeight = lastItem.y!;
-      if (y && y < prevWeight - 14 * sinceLastEntry)
+      if (y && y < prevWeight - fortnight * sinceLastEntry)
         return this.form.get('y')?.setErrors({ tooLow: true });
-      if (y && y > prevWeight + 14 * sinceLastEntry)
+      if (y && y > prevWeight + fortnight * sinceLastEntry)
         return this.form.get('y')?.setErrors({ tooHigh: true });
       this.form.get('y')?.setErrors(null);
     });
@@ -384,6 +384,8 @@ export class WeightTrackerComponent implements OnInit {
     );
 
     modal.close();
+
+    this.init();
 
     this.canvasJSChart().chart.render();
   }
