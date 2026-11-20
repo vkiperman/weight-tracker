@@ -1,4 +1,11 @@
-import { AfterViewInit, Directive, ElementRef, inject, input } from '@angular/core';
+import {
+  AfterViewChecked,
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  inject,
+  input,
+} from '@angular/core';
 
 export type AutoselectMode = 'start' | 'end' | 'all' | '';
 
@@ -6,10 +13,12 @@ export type AutoselectMode = 'start' | 'end' | 'all' | '';
   selector: 'input[autoselect], textarea[autoselect]',
   host: {
     '(focus)': 'onFocus()',
+    '(focusin)': 'onFocus()',
   },
 })
-export class Autoselect implements AfterViewInit {
+export class Autoselect implements AfterViewInit, AfterViewChecked {
   private readonly el = inject<ElementRef<HTMLInputElement | HTMLTextAreaElement>>(ElementRef);
+  private focusHandler = () => this.onFocus();
 
   private static undefinedToEmpty(value: AutoselectMode | undefined): AutoselectMode {
     return value ?? '';
@@ -27,7 +36,14 @@ export class Autoselect implements AfterViewInit {
   public readonly end = input<number | undefined>(undefined);
 
   public ngAfterViewInit(): void {
-    this.applySelection();
+    this.el.nativeElement.addEventListener('focus', this.focusHandler);
+    this.el.nativeElement.addEventListener('focusin', this.focusHandler);
+  }
+
+  public ngAfterViewChecked(): void {
+    if (this.el.nativeElement === document.activeElement) {
+      this.applySelection();
+    }
   }
 
   public onFocus(): void {

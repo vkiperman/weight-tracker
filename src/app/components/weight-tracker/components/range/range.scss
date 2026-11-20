@@ -1,0 +1,151 @@
+// Material 3 "expressive" slider: thick rounded track split by a thin
+// vertical handle, with a gap on either side of the handle.
+// Override the custom properties below to theme it.
+:host {
+  --range-active: #ffffffaa;
+  --range-inactive: #ffffff44;
+  --range-stop-on-active: #111;
+  --range-stop-on-inactive: #bbb;
+  --range-indicator-bg: #e3e3e3;
+  --range-indicator-text: #303030;
+  --range-width: 16rem;
+  --range-track-height: 12px;
+  --range-handle-height: 30px;
+  --range-gap: 5px;
+
+  display: inline-block;
+  width: var(--range-width);
+  touch-action: none;
+  user-select: none;
+  margin-block: 4px;
+}
+
+// Block
+.range {
+  --pos: 0%;
+  position: relative;
+  height: var(--range-handle-height);
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+
+  // Elements
+  &__track {
+    position: relative;
+    width: 100%;
+    height: var(--range-track-height);
+  }
+
+  &__segment {
+    position: absolute;
+    top: 0;
+    height: 100%;
+
+    // Outer ends fully rounded, inner ends (next to the handle) slightly rounded.
+    &--active {
+      left: 0;
+      width: max(0px, calc(var(--pos) - var(--range-gap)));
+      border-radius: 8px 2px 2px 8px;
+      background: var(--range-active);
+    }
+
+    &--inactive {
+      right: 0;
+      width: max(0px, calc(100% - var(--pos) - var(--range-gap)));
+      border-radius: 2px 8px 8px 2px;
+      background: var(--range-inactive);
+    }
+  }
+
+  &__stop {
+    position: absolute;
+    top: 50%;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--range-stop-on-inactive);
+    pointer-events: none;
+
+    &--active {
+      background: var(--range-stop-on-active);
+    }
+
+    &--end {
+      left: auto;
+      right: 6px;
+      transform: translate(50%, -50%);
+    }
+  }
+
+  &__handle-anchor {
+    position: absolute;
+    top: 50%;
+    left: var(--pos);
+    width: 0;
+    height: 0;
+  }
+
+  &__handle {
+    position: absolute;
+    width: 4px;
+    height: var(--range-handle-height);
+    border-radius: 2px;
+    transform: translate(-50%, -50%);
+    background: var(--range-active);
+    transition: width 120ms ease;
+  }
+
+  &__value {
+    position: absolute;
+    bottom: calc(var(--range-handle-height) / 2 + 4px);
+    left: 0;
+    min-width: 48px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    border-radius: 24px;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--range-indicator-text);
+    background: var(--range-indicator-bg);
+    transform: translateX(-50%) scale(0);
+    transform-origin: bottom center;
+    opacity: 0;
+    transition:
+      transform 150ms ease,
+      opacity 150ms ease;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  // Modifiers
+  &--disabled {
+    cursor: default;
+    opacity: 0.38;
+  }
+
+  // Pressed: handle narrows, value pill appears.
+  &--dragging &__handle {
+    width: 2px;
+  }
+
+  &--dragging &__value {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+
+  // Keyboard focus (states aren't modifiers, so they live on the block).
+  &:not(&--disabled):focus-visible &__handle {
+    outline: 2px solid var(--range-active);
+    outline-offset: 2px;
+  }
+
+  &:not(&--disabled):focus-visible &__value {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}

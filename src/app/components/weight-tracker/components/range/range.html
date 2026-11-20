@@ -1,0 +1,40 @@
+<div
+  class="range"
+  role="slider"
+  [attr.tabindex]="disabled() ? -1 : 0"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-valuemin]="min()"
+  [attr.aria-valuemax]="max()"
+  [attr.aria-valuenow]="value()"
+  [attr.aria-disabled]="disabled()"
+  [class.range--disabled]="disabled()"
+  [class.range--dragging]="dragging()"
+  [style.--pos]="percent() + '%'"
+  (pointerdown)="onPointerDown($event)"
+  (pointermove)="onPointerMove($event)"
+  (pointerup)="onPointerUp($event)"
+  (pointercancel)="onPointerUp($event)"
+  (keydown)="onKeyDown($event)"
+  (blur)="onTouched()"
+>
+  <div class="range__track" #track>
+    <div class="range__segment range__segment--active"></div>
+    <div class="range__segment range__segment--inactive"></div>
+
+    @for (tick of tickMarks(); track tick.value) {
+      <span
+        class="range__stop"
+        [class.range__stop--active]="tick.active"
+        [style.left.%]="tick.percent"
+      ></span>
+    }
+    @if (!tickMarks().length) {
+      <span class="range__stop range__stop--end"></span>
+    }
+
+    <div class="range__handle-anchor">
+      <div class="range__value">{{ value() }}</div>
+      <div class="range__handle"></div>
+    </div>
+  </div>
+</div>

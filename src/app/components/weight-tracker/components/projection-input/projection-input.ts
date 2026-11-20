@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, input, numberAttribute, OnInit } from '@angular/core';
 import { ControlContainer, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { Range } from '../range/range';
 
 @Component({
   selector: 'projection-input',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, Range],
   templateUrl: './projection-input.html',
   styleUrl: './projection-input.scss',
 })

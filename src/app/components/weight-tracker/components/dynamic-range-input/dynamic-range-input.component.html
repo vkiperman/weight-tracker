@@ -7,6 +7,13 @@
   <label>
     {{ label() }}
     <br />
-    <input list="rangevalues" type="range" formControlName="range" [min]="min()" [max]="max()" />
+
+    <app-range
+      list="rangevalues"
+      formControlName="range"
+      [min]="min()"
+      [max]="max()"
+    />
+    <!-- <input list="rangevalues" type="range" formControlName="range" [min]="min()" [max]="max()" /> -->
   </label>
 </ng-container>

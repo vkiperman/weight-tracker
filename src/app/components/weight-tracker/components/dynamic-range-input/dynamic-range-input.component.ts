@@ -11,10 +11,11 @@ import {
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
+import { Range } from '../range/range';
 
 @Component({
   selector: 'dynamic-range-input',
-  imports: [ReactiveFormsModule, CommonModule],
+  imports: [ReactiveFormsModule, CommonModule, Range],
   templateUrl: './dynamic-range-input.component.html',
   styleUrl: './dynamic-range-input.component.scss',
 })

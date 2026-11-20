@@ -1,4 +1,4 @@
-import { Action, createFeatureSelector, createReducer, createSelector, on } from '@ngrx/store';
+import { Action, createReducer, on } from '@ngrx/store';
 import { ChartDataPoint } from 'canvasjs';
 import { weightDataActions } from './weight-data.actions';
 
@@ -22,5 +22,5 @@ export function weightDataReducer(state: WeightDataState | undefined, action: Ac
 }
 
 // entity selectors
-const selectState = createFeatureSelector<WeightDataState>(weightDataFeatureKey);
-export const getWeights = createSelector(selectState, ({ weights }) => weights);
+export const getWeights = (state: { weightData?: WeightDataState } | undefined) =>
+  state?.weightData?.weights ?? null;

@@ -7,12 +7,18 @@
   <label>
     {{ label() }}
     <br />
-    <input
+    <app-range
+      list="projectionValues"
+      formControlName="projectionSampleSize"
+      [min]="min()"
+      [max]="max()"
+    />
+    <!-- <input
       list="projectionValues"
       type="range"
       formControlName="projectionSampleSize"
       [min]="min()"
       [max]="max()"
-    />
+    /> -->
   </label>
 </ng-container>

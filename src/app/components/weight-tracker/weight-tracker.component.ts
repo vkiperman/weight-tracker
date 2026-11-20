@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, DestroyRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Modal } from '@app/shared/components/modal/modal';
@@ -64,7 +73,7 @@ export class WeightTrackerComponent implements OnInit {
   public configForm$!: Observable<{ projectionSampleSize: number }>;
 
   public readonly projected = signal(
-    slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!)
+    slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value!),
   );
 
   public today = this.form.value.x!;
@@ -77,6 +86,16 @@ export class WeightTrackerComponent implements OnInit {
   });
 
   public canvasJSChart = viewChild.required<CanvasJSChart>(CanvasJSChart);
+  private chart = signal<CanvasJSChart['chart'] | null>(null);
+
+  constructor() {
+    effect(() => {
+      const chart = this.chart();
+      if (!chart) return;
+      chart.options = this.data();
+      chart.render();
+    });
+  }
 
   private get weightMultiplier() {
     return this.weightTrackerConfig()?.units ? 0.453592 : 1;
@@ -89,7 +108,7 @@ export class WeightTrackerComponent implements OnInit {
       filter((state) => !!state),
       tap((state) => this.weightTrackerConfig.set(state)),
       distinctUntilChanged(deepEqual),
-      tap(this.init.bind(this))
+      tap(this.init.bind(this)),
     );
 
     this.configForm = new FormGroup({
@@ -99,9 +118,8 @@ export class WeightTrackerComponent implements OnInit {
       distinctUntilKeyChanged('projectionSampleSize'),
       tap(({ projectionSampleSize }) => {
         this.projected.set(slidingProjections(this.weightData(), projectionSampleSize));
-        this.canvasJSChart().chart.render();
       }),
-      startWith(this.configForm.value)
+      startWith(this.configForm.value),
     );
     setTimeout(() => {
       localStorage.setItem(`${storageItemName}-backup`, localStorage.getItem(storageItemName)!);
@@ -127,7 +145,7 @@ export class WeightTrackerComponent implements OnInit {
     this.selectedDate.valueChanges
       .pipe(
         filter((date) => !!date),
-        takeUntilDestroyed(this.destroyRef)
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((date) => {
         const entry = this.weightData().find(({ x }) => +x! === +new Date(date))!;
@@ -153,15 +171,15 @@ export class WeightTrackerComponent implements OnInit {
         this.projected.set(
           slidingProjections(
             this.weightData(),
-            this.configForm?.get('projectionSampleSize')?.value!
-          )
+            this.configForm?.get('projectionSampleSize')?.value!,
+          ),
         );
       });
 
     this.dynamicRange.get('range')?.setValue(dedupedStoredData.length);
 
     this.projected.set(
-      slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value)
+      slidingProjections(this.weightData(), this.configForm?.get('projectionSampleSize')?.value),
     );
 
     this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ x, y }) => {
@@ -182,8 +200,8 @@ export class WeightTrackerComponent implements OnInit {
 
   public showEnterWeightDialog(modal: Modal) {
     modal.open();
-    const wt = modal.dialogRef().nativeElement.querySelector('input#wt') as HTMLInputElement;
-    wt.focus();
+    const wt = modal.dialogRef().nativeElement.querySelector('input#wt') as HTMLInputElement | null;
+    wt?.focus();
   }
 
   public getDedupedStoredData() {
@@ -196,7 +214,7 @@ export class WeightTrackerComponent implements OnInit {
           y: y! * this.weightMultiplier,
           message,
         }))
-        .filter((item: WT_ChartDataPoint) => !seen.has(+item.x!) && seen.add(+item.x!))
+        .filter((item: WT_ChartDataPoint) => !seen.has(+item.x!) && seen.add(+item.x!)),
     );
   }
 
@@ -223,7 +241,9 @@ export class WeightTrackerComponent implements OnInit {
   }
 
   private visible: boolean[] = [true, true, true, false, false, true];
-  private units = this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
+  private get units() {
+    return this.weightTrackerConfig()?.units ? ' KG' : ' lbs';
+  }
 
   public mainData = computed<ChartDataSeriesOptions>(() => ({
     color: 'rgb(255, 255, 255, .8)',
@@ -357,37 +377,36 @@ export class WeightTrackerComponent implements OnInit {
   });
 
   public handleChartReady(chart: CanvasJSChart['chart']) {
-    chart.render();
+    this.chart.set(chart);
   }
 
   public updateWeights(modal: Modal) {
-    if (this.form.invalid) return;
-
     const dedupedData = this.getDedupedStoredData();
+    const currentRange = this.weightData().length || dedupedData.length;
+    this.dynamicRange.get('range')?.setValue(currentRange);
 
-    this.dynamicRange.get('range')?.setValue(dedupedData.length);
+    if (this.form.invalid || this.form.get('y')?.invalid) return;
 
     this.weightData.update(() =>
       [
         ...dedupedData.filter(({ x }) => +x! !== +this.form.value.x!),
         this.form.getRawValue() as ChartDataPoint,
-      ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!))
+      ].sort((a, b) => +new Date(a.x!) - +new Date(b.x!)),
     );
 
     const weightData = this.weightData();
+    this.dynamicRange.get('range')?.setValue(weightData.length);
     this.projected.set(
-      slidingProjections(weightData, this.configForm.get('projectionSampleSize')?.value)
+      slidingProjections(weightData, this.configForm.get('projectionSampleSize')?.value),
     );
     localStorage.setItem(
       storageItemName,
-      JSON.stringify(weightData.filter(({ filledIn }) => !filledIn))
+      JSON.stringify(weightData.filter(({ filledIn }) => !filledIn)),
     );
 
     modal.close();
 
     this.init();
-
-    this.canvasJSChart().chart.render();
   }
   /* istanbul ignore next */
   private itemClick(e: ChartEvent) {

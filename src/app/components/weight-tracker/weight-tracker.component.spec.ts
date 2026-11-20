@@ -56,13 +56,26 @@ describe('WeightTrackerComponent', () => {
   });
 
   it('should updateWeights', () => {
-    spyOn(component.canvasJSChart().chart, 'render');
     const modal = createMockModal();
     spyOn(modal, 'close');
+    component.form.get('x')?.setValue(data.at(-1)!.x);
     expect(component.updateWeights(modal)).toBeUndefined();
-    expect(component.canvasJSChart().chart.render).toHaveBeenCalled();
     expect(component.dynamicRange.get('range')?.value).toEqual(data.length);
     expect(modal.close).toHaveBeenCalled();
+  });
+
+  it('should chart every update to an existing weight', async () => {
+    const modal = createMockModal();
+    const lastChartedWeight = () =>
+      component.canvasJSChart().chart.options.data[0].dataPoints.at(-1).y;
+    component.form.get('x')?.setValue(data.at(-1)!.x);
+
+    for (const weight of [148, 147]) {
+      component.form.get('y')?.setValue(weight);
+      component.updateWeights(modal);
+      await fixture.whenStable();
+      expect(lastChartedWeight()).toEqual(weight);
+    }
   });
 
   it('should stop validation if last entry was two weeks ago', () => {
@@ -139,9 +152,11 @@ describe('WeightTrackerComponent', () => {
     expect(modal.close).toHaveBeenCalled();
   });
 
-  it('should handleChartReady', () => {
-    const mockChart = { render: jasmine.createSpy('render') };
-    component.handleChartReady(mockChart as any);
+  it('should handleChartReady by rendering the latest chart data', () => {
+    const mockChart = { options: {}, render: jasmine.createSpy('render') };
+    component.handleChartReady(mockChart);
+    TestBed.tick();
+    expect(mockChart.options).toBe(component.data());
     expect(mockChart.render).toHaveBeenCalled();
   });
 
